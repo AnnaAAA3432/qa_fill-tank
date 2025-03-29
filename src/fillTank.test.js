@@ -3,85 +3,105 @@
 describe('fillTank', () => {
   const { fillTank } = require('./fillTank');
 
-  it('should fill the full tank when no amount is given', () => {
-    const customer = {
-      money: 3000,
+  const createCustomer = () => {
+    return {
+      money: 5000,
       vehicle: {
-        maxTankCapacity: 40,
-        fuelRemains: 8,
+        maxTankCapacity: 50,
+        fuelRemains: 10,
       },
     };
+  };
 
-    fillTank(customer, 50);
-    expect(customer.vehicle.fuelRemains).toBe(40);
-    expect(customer.money).toBe(1400);
-  });
-
-  it('should fill only what the customer can pay for', () => {
-    const customer = {
-      money: 500,
-      vehicle: {
-        maxTankCapacity: 40,
-        fuelRemains: 8,
-      },
-    };
+  it('no amount was given', () => {
+    const customer = createCustomer();
 
     fillTank(customer, 100);
-    expect(customer.vehicle.fuelRemains).toBe(13);
-    expect(customer.money).toBe(0);
-  });
 
-  it('should not fill if less than 2 liters can be filled', () => {
-    const customer = {
-      money: 100,
-      vehicle: {
-        maxTankCapacity: 40,
-        fuelRemains: 39,
-      },
-    };
-
-    fillTank(customer, 100);
-    expect(customer.vehicle.fuelRemains).toBe(39);
-    expect(customer.money).toBe(100);
-  });
-
-  it('should pour only what the tank can accommodate', () => {
-    const customer = {
-      money: 3000,
-      vehicle: {
-        maxTankCapacity: 40,
-        fuelRemains: 35,
-      },
-    };
-
-    fillTank(customer, 50, 10);
-    expect(customer.vehicle.fuelRemains).toBe(40);
-    expect(customer.money).toBe(2750);
-  });
-
-  it('should round down to the nearest tenth of a liter', () => {
-    const customer = {
-      money: 1000,
-      vehicle:
-        {
-          maxTankCapacity: 40, fuelRemains: 0,
-        },
-    };
-
-    fillTank(customer, 50, 7.987);
-    expect(customer.vehicle.fuelRemains).toBe(7.9);
-  });
-
-  it('should round the fuel cost to the nearest hundredth', () => {
-    const customer = {
+    expect(customer).toEqual({
       money: 1000,
       vehicle: {
-        maxTankCapacity: 40,
-        fuelRemains: 0,
+        maxTankCapacity: 50,
+        fuelRemains: 50,
       },
-    };
+    });
+  });
 
-    fillTank(customer, 63.759, 10);
-    expect(customer.vehicle.fuelRemains).toBe(10);
+  it('amount > maxTankCapacity', () => {
+    const customer = createCustomer();
+
+    fillTank(customer, 100, 100);
+
+    expect(customer).toEqual({
+      money: 1000,
+      vehicle: {
+        maxTankCapacity: 50,
+        fuelRemains: 50,
+      },
+    });
+  });
+
+  it('ordered more than can afford', () => {
+    const customer = createCustomer();
+
+    fillTank(customer, 1000, 10);
+
+    expect(customer).toEqual({
+      money: 0,
+      vehicle: {
+        maxTankCapacity: 50,
+        fuelRemains: 15,
+      },
+    });
+  });
+
+  it(`nothing changes if the amount < 2 liters`, () => {
+    const customer = createCustomer();
+
+    fillTank(customer, 100, 1);
+
+    expect(customer).toEqual({
+      money: 5000,
+      vehicle: {
+        maxTankCapacity: 50,
+        fuelRemains: 10,
+      },
+    });
+  });
+
+  it('rounds the poured amount to the tenth', () => {
+    const customer = createCustomer();
+
+    fillTank(customer, 100, 9.5555);
+
+    expect(customer).toEqual({
+      money: 4050,
+      vehicle: {
+        maxTankCapacity: 50,
+        fuelRemains: 19.5,
+      },
+    });
+  });
+
+  it('rounds the price to the hundredth', () => {
+    const customer = createCustomer();
+
+    fillTank(customer, 99.5555555, 10);
+
+    expect(customer).toEqual({
+      money: 4004.44,
+      vehicle: {
+        maxTankCapacity: 50,
+        fuelRemains: 20,
+      },
+    });
+  });
+
+  it('returns nothing', () => {
+    const customer = createCustomer();
+
+    const result = fillTank(customer, 100);
+
+    expect(result).toEqual(undefined);
   });
 });
